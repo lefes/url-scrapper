@@ -18,8 +18,7 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov', '.fl
 # TODO:
 # 1. Add argument parser
 # 2. Refactoring logging
-# 2.5 Personal log file for every proccess
-# 3. Exclude bs4. Use regexp for search hosts
+# 3 Personal log file for every proccess
 # 4. README
 # 5. Release on github and bitbucket
 # 6. Refactoring
@@ -32,6 +31,7 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov', '.fl
 # 13. Check for internal links like "support.html"
 # 14. if external links too much then part of them add to DB
 # 15. if // then this is external link
+# 16. Docker container
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
     try:
