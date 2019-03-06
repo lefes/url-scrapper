@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 import urllib.request
-from bs4 import BeautifulSoup
 import re
 import psycopg2
 from urllib.parse import urlparse
@@ -28,23 +27,29 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov', '.fl
 # 8. Rework cookie parser
 # 9. Function for links
 # 10. Fix id numbers
+# 11. Autostart after reboot RPi
+# 12. Autostart after shutdown
+# 13. Check for internal links like "support.html"
+# 14. if external links too much then part of them add to DB
+# 15. if // then this is external link
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
     try:
         deepRecurs += 1
         internalLinks = []
         html, cookie = requestSite(includeUrl, procNumb)
-        bsObj = BeautifulSoup(html, 'html.parser')
+        tempurl = urlparse(includeUrl).netloc
+        rr = re.compile('href="(\/[^"]*|[^"]*'+tempurl+'[^"]*)"')
         bankIncludeUrl = unicList(bankIncludeUrl)
         tempLinks = []
-        for link in bsObj.findAll("a", href=re.compile("^(/|.*"+includeUrl+")")):
-            if link.attrs['href'] is not None:
-                if origUrl not in link.attrs['href']:
-                    linkFull = origUrl+link.attrs['href']
+        for link in re.findall(rr, html.decode('utf-8')):
+            if link is not None:
+                if tempurl not in link:
+                    linkFull = origUrl+link
                 else:
-                    linkFull = link.attrs['href']
+                    linkFull = link
                 if linkFull not in bankIncludeUrl:
-                    if link.attrs['href'] != '/':
+                    if link != '/':
                             tempLinks.append(linkFull)
                             bankIncludeUrl.append(linkFull)
         if tempLinks:
@@ -67,14 +72,18 @@ def unicList(listItem):
 def getExternalLinks(url, excludeUrl, procNumb):
     try:
         html, cookie = requestSite(url, procNumb)
-        bsObj = BeautifulSoup(html, 'html.parser')
+        logging.debug('Process #%s = START parcing external link: %s', procNumb, url)
+        tempurl = urlparse(excludeUrl).netloc
+        rr= re.compile('href="((http|www|(?!\/))(?!'+excludeUrl+')[^"]*)"')
         externalLinks = []
-        for link in bsObj.findAll("a", href=re.compile("^(http|www)((?!"+excludeUrl+").)*$")):
-            if link.attrs['href'] is not None:
-                if link.attrs['href'] not in externalLinks:
-                    if '.tumblr' not in link.attrs['href']:
-                        p = urlparse(link.attrs['href'])
-                        externalLinks.append(p.scheme +'://'+ p.netloc)
+        for link in re.findall(rr, html.decode('utf-8')):
+            if link[0] is not None:
+                if link[0] not in externalLinks:
+                    if '.tumblr' not in link[0]:
+                        p = urlparse(link[0])
+                        if p.netloc and '.' in p.netloc:
+                            externalLinks.append(p.scheme +'://'+ p.netloc)
+        logging.debug('Process #%s = STOP parcing external link: %s', procNumb, url)
         return externalLinks
     except:
         logging.debug('Process #%s = ERROR in external link: %s', procNumb, url)
@@ -93,6 +102,7 @@ def requestSite(url, procNumb):
         req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'})
         logging.debug('Process #%s = Trying opening url: %s', procNumb, url)
         r = urllib.request.urlopen(req, timeout=3)
+        logging.debug('Process #%s = url opened: %s', procNumb, url)
         html = r.read()
         cookie = r.getheader('Set-Cookie')
         if html:
@@ -115,11 +125,11 @@ def crawling(potok):
         try:
             logging.info('Process #%s = +++++++NEW ROUND+++++++', procNumb)
             logging.info('Process #%s = Connecting to DB: %s', procNumb, sys.argv[1])
-            conn = psycopg2.connect(host=sys.argv[1], user=DB['username'], password=DB['password'], dbname='urls')
+            conn = psycopg2.connect(host=sys.argv[1], user=DB['username'], password=DB['password'], dbname=DB['dbname'])
             logging.debug('Process #%s = Initializating cursor ', procNumb)
             c = conn.cursor()
             logging.debug('Process #%s = Execute SELECT from DB', procNumb)
-            c.execute('SELECT url FROM urls WHERE checked=0 LIMIT 1 FOR UPDATE')
+            c.execute('SELECT url FROM urls WHERE checked=0 LIMIT 1 FOR UPDATE;')
             db_urls = c.fetchall()
             logging.debug('Process #%s = Fetched from DB', procNumb)
             if db_urls:
