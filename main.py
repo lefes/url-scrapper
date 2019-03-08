@@ -129,7 +129,7 @@ def crawling(potok):
             logging.debug('Process #%s = Initializating cursor ', procNumb)
             c = conn.cursor()
             logging.debug('Process #%s = Execute SELECT from DB', procNumb)
-            c.execute('SELECT url FROM urls WHERE checked=0 LIMIT 1 FOR UPDATE;')
+            c.execute('SELECT url FROM urls WHERE checked=0 ORDER BY random() LIMIT 1 FOR UPDATE;')
             db_urls = c.fetchall()
             logging.debug('Process #%s = Fetched from DB', procNumb)
             if db_urls:
