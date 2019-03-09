@@ -15,7 +15,7 @@ from config import DB
 
 EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
              '.flac', '.flv', '.mkv', '.dvd', '.odt', '.xls', '.doc', '.docx',
-              '.xlsx', '.mpp', '.zip', '.tar', '.rar', '.tumblr']
+              '.xlsx', '.mpp', '.zip', '.tar', '.rar', '.tumblr', '.xml']
 
 # TODO:
 # 1. Add argument parser
@@ -35,6 +35,9 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # 15. if // then this is external link
 # 16. Docker container
 # 17. Export urls in few formats (xml, raw, cvs, ...)
+# 18. Fix RE on external links
+# 19. Refactor to parse external and internal in one request
+# 20. Fix internal links (doesnt match links like "href=support")
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
     try:
@@ -42,7 +45,7 @@ def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, d
         internalLinks = []
         html, cookie = requestSite(includeUrl, procNumb)
         tempurl = urlparse(includeUrl).netloc
-        rr = re.compile('href="(\/[^"]*|[^"]*'+tempurl+'[^"]*)"')
+        rr = re.compile('href="(\/[^"]*|\?[^"]*|[^"]*'+tempurl+'[^"]*)"')
         bankIncludeUrl = unicList(bankIncludeUrl)
         tempLinks = []
         for link in re.findall(rr, html.decode('utf-8')):
@@ -72,29 +75,25 @@ def unicList(listItem):
     listItem = [el for el, _ in groupby(listItem)]
     return listItem
 
-def getExternalLinks(url, excludeUrl, procNumb):
+def getExternalLinks(url, procNumb):
     try:
         html, cookie = requestSite(url, procNumb)
         logging.debug('Process #%s = START parcing external link: %s', procNumb, url)
-        tempurl = urlparse(excludeUrl).netloc
-        rr= re.compile('href="((http|www|(?!\/))(?!'+excludeUrl+')[^"]*)"')
+        rr= re.compile('href="((http|www)[^"]+)"')
         externalLinks = []
         for link in re.findall(rr, html.decode('utf-8')):
             if link[0] is not None:
-                if link[0] not in externalLinks:
-                    if '.tumblr' not in link[0]:
-                        p = urlparse(link[0])
-                        if p.netloc and '.' in p.netloc:
-                            externalLinks.append(p.scheme +'://'+ p.netloc)
+                if url not in link[0]:
+                    if link[0] not in externalLinks:
+                        if '.tumblr' not in link[0]:
+                            p = urlparse(link[0])
+                            if p.netloc and '.' in p.netloc:
+                                externalLinks.append(p.scheme +'://'+ p.netloc)
         logging.debug('Process #%s = STOP parcing external link: %s', procNumb, url)
         return externalLinks
     except:
         logging.debug('Process #%s = ERROR in external link: %s', procNumb, url)
         return ''
-
-def splitAddress(address):
-    addressParts= address.replace('http://',"").split("/")
-    return addressParts
 
 def requestSite(url, procNumb):
     sleep(0.25)
@@ -156,7 +155,7 @@ def crawling(potok):
                 logging.debug('Process #%s = internalLinks done in URL: %s', procNumb, url)
                 internalLinks = unicList(internalLinks)
                 for inter in internalLinks:
-                    externalLinks += getExternalLinks(inter, splitAddress(inter)[0], procNumb)
+                    externalLinks += getExternalLinks(inter, procNumb)
                     if not externalLinks:
                         continue
                     logging.debug('Process #%s = externalLinks Done in URL: %s', procNumb, inter)
