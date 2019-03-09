@@ -2,3 +2,5 @@
 config.py
 .vscode
 *.pyc
+work.log
+*.log
