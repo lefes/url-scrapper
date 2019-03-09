@@ -13,7 +13,9 @@ from multiprocessing.dummy import Pool as ThreadPool
 from datetime import datetime
 from config import DB
 
-EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov', '.flac', '.flv', '.mkv', '.dvd', '.odt', '.xls', '.doc', '.docx', '.xlsx', '.mpp', '.zip', '.tar', '.rar', '.tumblr']
+EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
+             '.flac', '.flv', '.mkv', '.dvd', '.odt', '.xls', '.doc', '.docx',
+              '.xlsx', '.mpp', '.zip', '.tar', '.rar', '.tumblr']
 
 # TODO:
 # 1. Add argument parser
@@ -32,6 +34,7 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov', '.fl
 # 14. if external links too much then part of them add to DB
 # 15. if // then this is external link
 # 16. Docker container
+# 17. Export urls in few formats (xml, raw, cvs, ...)
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
     try:
