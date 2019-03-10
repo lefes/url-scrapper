@@ -20,24 +20,20 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # TODO:
 # 1. Add argument parser
 # 2. Refactoring logging
-# 3 Personal log file for every proccess
+# 3  Personal log file for every proccess
 # 4. README
 # 5. Release on github and bitbucket
 # 6. Refactoring
 # 7. Syslog server
 # 8. Rework cookie parser
-# 9. Function for links
-# 10. Fix id numbers
-# 11. Autostart after reboot RPi
-# 12. Autostart after shutdown
-# 13. Check for internal links like "support.html"
-# 14. if external links too much then part of them add to DB
-# 15. if // then this is external link
-# 16. Docker container
-# 17. Export urls in few formats (xml, raw, cvs, ...)
-# 18. Fix RE on external links
-# 19. Refactor to parse external and internal in one request
-# 20. Fix internal links (doesnt match links like "href=support")
+# 9. Fix id numbers
+# 10. Check for internal links like "support.html"
+# 11. if external links too much then part of them add to DB
+# 12. if // then this is external link
+# 13. Docker container
+# 14. Export urls in few formats (xml, raw, cvs, ...)
+# 15. Fix RE on external links
+# 16. Refactor to parse external and internal in one request
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
     try:
