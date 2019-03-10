@@ -31,9 +31,8 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # 11. if external links too much then part of them add to DB
 # 12. if // then this is external link
 # 13. Docker container
-# 14. Export urls in few formats (xml, raw, cvs, ...)
+# 14. Export urls in few formats (xml, raw, cvs, sql, ...)
 # 15. Fix RE on external links
-# 16. Refactor to parse external and internal in one request
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
     try:
