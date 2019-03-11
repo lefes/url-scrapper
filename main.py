@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
+import argparse
 import urllib.request
 import re
 import psycopg2
@@ -12,6 +13,7 @@ from urllib.error import HTTPError, URLError
 from multiprocessing.dummy import Pool as ThreadPool
 from datetime import datetime
 from config import DB
+
 
 EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
              '.flac', '.flv', '.mkv', '.dvd', '.odt', '.xls', '.doc', '.docx',
@@ -121,8 +123,8 @@ def crawling(potok):
     while True:
         try:
             logging.info('Process #%s = +++++++NEW ROUND+++++++', procNumb)
-            logging.info('Process #%s = Connecting to DB: %s', procNumb, sys.argv[1])
-            conn = psycopg2.connect(host=sys.argv[1], user=DB['username'], password=DB['password'], dbname=DB['dbname'])
+            logging.info('Process #%s = Connecting to DB: %s', procNumb, args.address)
+            conn = psycopg2.connect(host=args.address, user=DB['username'], password=DB['password'], dbname=DB['dbname'])
             logging.debug('Process #%s = Initializating cursor ', procNumb)
             c = conn.cursor()
             logging.debug('Process #%s = Execute SELECT from DB', procNumb)
@@ -155,8 +157,8 @@ def crawling(potok):
                         continue
                     logging.debug('Process #%s = externalLinks Done in URL: %s', procNumb, inter)
                 externalLinks = unicList(externalLinks)
-                logging.info('Process #%s = Connecting to DB for external: %s', procNumb, sys.argv[1])
-                conn_ext = psycopg2.connect(host=sys.argv[1], user=DB['username'], password=DB['password'], dbname='urls')
+                logging.info('Process #%s = Connecting to DB for external: %s', procNumb, args.address)
+                conn_ext = psycopg2.connect(host=args.address, user=DB['username'], password=DB['password'], dbname='urls')
                 logging.debug('Process #%s = Initializating cursor for ext', procNumb)
                 c_ext = conn_ext.cursor()
                 if externalLinks:
@@ -198,7 +200,7 @@ def main(threads=5):
     pool.join()
 
 
-
+"""
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print('Enter ip, level of logging and number of threads')
@@ -212,7 +214,30 @@ if __name__ == '__main__':
         logging.basicConfig(filename='work.log', level=level_debug, format=FORMAT)
         logging.info('Start program')
         if len(sys.argv) == 4:
-            logging.debug('Parcing arguments: %s %s %s', sys.argv[1], sys.argv[2], sys.argv[3])
+            logging.debug('Parcing arguments: %s %s %s', args.address, sys.argv[2], sys.argv[3])
             main(int(sys.argv[3]))
         else:
             main()
+"""
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a','--address',type=str,help='default ip address is 127.0.0.1',default='127.0.0.1',metavar='')
+    parser.add_argument('-v','--verbose',action='count',help='Level of logging (INFO,DEBUG)',default=1)
+    parser.add_argument('-t','--threads',type=int,help='Number of threads',default=1,metavar='')
+    args=parser.parse_args()
+
+    if args.verbose == 1:
+        level_debug = 10
+    elif args.verbose == 2:
+        level_debug = 20
+
+
+    FORMAT = '%(asctime)-15s %(message)s'
+    logging.basicConfig(filename='work.log', level=level_debug, format=FORMAT)
+    logging.info('Start program')
+
+
+    logging.debug('Parcing arguments: %s %s %s', args.address, args.verbose, args.threads)
+    main(args.threads)
+
