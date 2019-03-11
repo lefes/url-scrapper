@@ -200,25 +200,7 @@ def main(threads=5):
     pool.join()
 
 
-"""
-if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print('Enter ip, level of logging and number of threads')
-        sys.exit()
-    else:
-        if sys.argv[2] == 'DEBUG':
-            level_debug = 10
-        elif sys.argv[2] == 'INFO':
-            level_debug = 20
-        FORMAT = '%(asctime)-15s %(message)s'
-        logging.basicConfig(filename='work.log', level=level_debug, format=FORMAT)
-        logging.info('Start program')
-        if len(sys.argv) == 4:
-            logging.debug('Parcing arguments: %s %s %s', args.address, sys.argv[2], sys.argv[3])
-            main(int(sys.argv[3]))
-        else:
-            main()
-"""
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -227,9 +209,9 @@ if __name__ == '__main__':
     parser.add_argument('-t','--threads',type=int,help='Number of threads',default=1,metavar='')
     args=parser.parse_args()
 
-    if args.verbose == 1:
+    if args.verbose == 2:
         level_debug = 10
-    elif args.verbose == 2:
+    elif args.verbose == 1:
         level_debug = 20
 
 
