@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
-import argparse
-import urllib.request
+
 import re
+import argparse
 import psycopg2
-from urllib.parse import urlparse
-from time import sleep
 import logging
-import sys
+import urllib.request
+from time import sleep
+from urllib.parse import urlparse
 from itertools import groupby
 from urllib.error import HTTPError, URLError
 from multiprocessing.dummy import Pool as ThreadPool
 from datetime import datetime
+
 from config import DB
 
 
@@ -20,7 +21,7 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
               '.xlsx', '.mpp', '.zip', '.tar', '.rar', '.tumblr', '.xml']
 
 # TODO:
-# 1. Add argument parser
+# 1. Add comments
 # 2. Refactoring logging
 # 3  Personal log file for every proccess
 # 4. README
@@ -65,7 +66,6 @@ def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, d
     except:
         logging.debug('Process #%s = ERROR in internal link: %s', procNumb, includeUrl)
         return ''
-
 
 def unicList(listItem):
     listItem.sort()
@@ -188,8 +188,7 @@ def crawling(potok):
         except:
                 logging.debug('ERROR - Process #%s IS SHUTTING DOWN', procNumb)
 
-
-def main(threads=5):
+def main(threads=1):
     logging.info('------START PROGRAM------')
     procs = []
     for i in range(1, threads+1):
@@ -200,8 +199,6 @@ def main(threads=5):
     pool.join()
 
 
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-a','--address',type=str,help='default ip address is 127.0.0.1',default='127.0.0.1',metavar='')
@@ -209,17 +206,14 @@ if __name__ == '__main__':
     parser.add_argument('-t','--threads',type=int,help='Number of threads',default=1,metavar='')
     args=parser.parse_args()
 
-    if args.verbose == 2:
-        level_debug = 10
-    elif args.verbose == 1:
+    if args.verbose == 1:
         level_debug = 20
-
+    else:
+        level_debug = 10
 
     FORMAT = '%(asctime)-15s %(message)s'
     logging.basicConfig(filename='work.log', level=level_debug, format=FORMAT)
     logging.info('Start program')
-
-
     logging.debug('Parcing arguments: %s %s %s', args.address, args.verbose, args.threads)
     main(args.threads)
 
