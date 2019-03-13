@@ -15,10 +15,11 @@ from datetime import datetime
 
 from config import DB
 
-
+# Extensions that need to be circumvented so that the pages load quickly enough
 EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
              '.flac', '.flv', '.mkv', '.dvd', '.odt', '.xls', '.doc', '.docx',
               '.xlsx', '.mpp', '.zip', '.tar', '.rar', '.tumblr', '.xml']
+
 
 # TODO:
 # 1. Add comments
@@ -37,13 +38,19 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # 14. Export urls in few formats (xml, raw, cvs, sql, ...)
 # 15. Fix RE on external links
 
+
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
+    # Recursive function, which is necessary to search for links that are inside the opened links.
+    # Accepts 5 parameters as input: includeUrl - links found inside origUrl, procNumb - stream number
+    # bankIncludeUrl is an array of links found within the zone under study, deep is the depth of the allowed research
+    # deepRecurs - the degree of this deepening.
+    # The function returns a list of found links within the site in case of a successful study and an empty value in case of failure.
     try:
         deepRecurs += 1
         internalLinks = []
         html, cookie = requestSite(includeUrl, procNumb)
         tempurl = urlparse(includeUrl).netloc
-        rr = re.compile('href="(\/[^"]*|\?[^"]*|[^"]*'+tempurl+'[^"]*)"')
+        rr = re.compile('href="(\/[^"]*|\?[^"]*|[^"]*' + tempurl + '[^"]*)"')
         bankIncludeUrl = unicList(bankIncludeUrl)
         tempLinks = []
         for link in re.findall(rr, html.decode('utf-8')):
@@ -67,10 +74,12 @@ def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, d
         logging.debug('Process #%s = ERROR in internal link: %s', procNumb, includeUrl)
         return ''
 
+
 def unicList(listItem):
     listItem.sort()
     listItem = [el for el, _ in groupby(listItem)]
     return listItem
+
 
 def getExternalLinks(url, procNumb):
     try:
@@ -85,20 +94,26 @@ def getExternalLinks(url, procNumb):
                         if '.tumblr' not in link[0]:
                             p = urlparse(link[0])
                             if p.netloc and '.' in p.netloc:
-                                externalLinks.append(p.scheme +'://'+ p.netloc)
+                                externalLinks.append(p.scheme + '://' + p.netloc)
         logging.debug('Process #%s = STOP parcing external link: %s', procNumb, url)
         return externalLinks
     except:
         logging.debug('Process #%s = ERROR in external link: %s', procNumb, url)
         return ''
 
+
 def requestSite(url, procNumb):
+    # The function requests the next site for research.
+    # It accepts 2 parameters as input: url - the intended address of the site for further research, procNumb - stream number
+    # The function returns html code and cookie in case of successful opening of the url, or an empty value in case of failure.
     sleep(0.25)
+    # Checking for the presence in the files of the extension contained in EXCLUDE
     for ex in EXCLUDE:
         if ex in url:
             return '', ''
+
     try:
-        req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'})
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'})
         logging.debug('Process #%s = Trying opening url: %s', procNumb, url)
         r = urllib.request.urlopen(req, timeout=3)
         logging.debug('Process #%s = url opened: %s', procNumb, url)
@@ -118,53 +133,66 @@ def requestSite(url, procNumb):
         logging.debug('Process #%s = ERROR when opening url(%s) with unknown error', procNumb, url)
         return '', ''
 
+
 def crawling(potok):
+    # The main investigative function
+    # Accepts potok - stream number
     procNumb = str(potok)
     while True:
         try:
             logging.info('Process #%s = +++++++NEW ROUND+++++++', procNumb)
             logging.info('Process #%s = Connecting to DB: %s', procNumb, args.address)
+
+            # Database connection
             conn = psycopg2.connect(host=args.address, user=DB['username'], password=DB['password'], dbname=DB['dbname'])
+
             logging.debug('Process #%s = Initializating cursor ', procNumb)
             c = conn.cursor()
             logging.debug('Process #%s = Execute SELECT from DB', procNumb)
             c.execute('SELECT url FROM urls WHERE checked=0 ORDER BY random() LIMIT 1 FOR UPDATE;')
             db_urls = c.fetchall()
             logging.debug('Process #%s = Fetched from DB', procNumb)
+
             if db_urls:
                 url = db_urls[0][0]
-                c.execute('UPDATE urls SET checked=1 WHERE url=%s', (url,))
-                html, cookie = requestSite(url, procNumb)
+                c.execute('UPDATE urls SET checked=1 WHERE url=%s', (url, ))
+                html, cookie = requestSite(url, procNumb)   # Request for found link
                 if cookie:
                     c.execute('INSERT INTO cookies(url, cookie) VALUES (%s, %s)', (url, cookie))
+            
             conn.commit()
             conn.close()
+
             logging.info('Process #%s = Crawling site: %s', procNumb, url)
             externalLinks = []
             logging.debug('Process #%s = requsting url: %s', procNumb, url)
+
             internalLinks = getInternalLinks(url, url, procNumb)
+
             if not internalLinks:
                 logging.debug('Process #%s = internalLinks is empty in URL: %s', procNumb, url)
                 logging.info('Process #%s = Crawling url %s DONE', procNumb, url)
-
             else:
                 internalLinks.append(url)
                 logging.debug('Process #%s = internalLinks done in URL: %s', procNumb, url)
                 internalLinks = unicList(internalLinks)
+
                 for inter in internalLinks:
                     externalLinks += getExternalLinks(inter, procNumb)
                     if not externalLinks:
                         continue
                     logging.debug('Process #%s = externalLinks Done in URL: %s', procNumb, inter)
+                
                 externalLinks = unicList(externalLinks)
                 logging.info('Process #%s = Connecting to DB for external: %s', procNumb, args.address)
                 conn_ext = psycopg2.connect(host=args.address, user=DB['username'], password=DB['password'], dbname='urls')
                 logging.debug('Process #%s = Initializating cursor for ext', procNumb)
                 c_ext = conn_ext.cursor()
+
                 if externalLinks:
                     extNums = 0
                     for cl_ex in externalLinks:
-                        c_ext.execute('SELECT url FROM urls where url=%s', (cl_ex,))
+                        c_ext.execute('SELECT url FROM urls where url=%s', (cl_ex, ))
                         in_db = c_ext.fetchone()
                         if not in_db:
                             try:
@@ -185,10 +213,14 @@ def crawling(potok):
                     conn_ext.close()
                     logging.info('Process #%s = ERROR external links dont found: %s', procNumb, url)
                     logging.info('Process #%s = Crawling url %s DONE', procNumb, url)
+
         except:
                 logging.debug('ERROR - Process #%s IS SHUTTING DOWN', procNumb)
 
+
 def main(threads=1):
+    # Performing function
+    # Takes as many streams as input
     logging.info('------START PROGRAM------')
     procs = []
     for i in range(1, threads+1):
@@ -200,10 +232,16 @@ def main(threads=1):
 
 
 if __name__ == '__main__':
+    # The main body of the program.
+    # Accepts 3 parameters as input: a - ip address of the device on which the database is located, by default 127.0.0.1
+    # v - the logging level, t - the number of threads.
     parser = argparse.ArgumentParser()
-    parser.add_argument('-a','--address',type=str,help='default ip address is 127.0.0.1',default='127.0.0.1',metavar='')
-    parser.add_argument('-v','--verbose',action='count',help='Level of logging (INFO,DEBUG)',default=1)
-    parser.add_argument('-t','--threads',type=int,help='Number of threads',default=1,metavar='')
+    parser.add_argument('-a','--address', type=str, help='default ip address is 127.0.0.1',
+                        default='127.0.0.1', metavar='')
+    parser.add_argument('-v','--verbose', help='Level of logging (INFO,DEBUG)',
+                        action='count', default=1)
+    parser.add_argument('-t','--threads', type=int, help='Number of threads',
+                        default=1, metavar='')
     args=parser.parse_args()
 
     if args.verbose == 1:
