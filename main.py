@@ -50,6 +50,7 @@ def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, d
         internalLinks = []
         html, cookie = requestSite(includeUrl, procNumb)
         tempurl = urlparse(includeUrl).netloc
+        # Parsing url links by regular expression
         rr = re.compile('href="(\/[^"]*|\?[^"]*|[^"]*' + tempurl + '[^"]*)"')
         bankIncludeUrl = unicList(bankIncludeUrl)
         tempLinks = []
@@ -65,6 +66,7 @@ def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, d
                             bankIncludeUrl.append(linkFull)
         if tempLinks:
             for l in tempLinks:
+                # Deepening the study of specified sites according to the deep indicator
                 if deepRecurs <= deep:
                     bankIncludeUrl += getInternalLinks(l, origUrl, procNumb, bankIncludeUrl=bankIncludeUrl, deepRecurs=deepRecurs)
         internalLinks += bankIncludeUrl
@@ -76,12 +78,18 @@ def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, d
 
 
 def unicList(listItem):
+    # The function excluding repetitions in the list of links.
+    # Takes as input listItem: list of string - the list of links that need to be filtered
+    # The function returns a list of links with unique url
     listItem.sort()
     listItem = [el for el, _ in groupby(listItem)]
     return listItem
 
 
 def getExternalLinks(url, procNumb):
+    # Function to get external links on the resulting site url
+    # Takes url: str - link found while parsing the resulting site, prucNumb: int - stream number
+    # Returns the found external references if successful, or null if unsuccessful.
     try:
         html, cookie = requestSite(url, procNumb)
         logging.debug('Process #%s = START parcing external link: %s', procNumb, url)
@@ -104,7 +112,7 @@ def getExternalLinks(url, procNumb):
 
 def requestSite(url, procNumb):
     # The function requests the next site for research.
-    # It accepts 2 parameters as input: url - the intended address of the site for further research, procNumb - stream number
+    # It accepts 2 parameters as input: url : str - the intended address of the site for further research, procNumb : int - stream number
     # The function returns html code and cookie in case of successful opening of the url, or an empty value in case of failure.
     sleep(0.25)
     # Checking for the presence in the files of the extension contained in EXCLUDE
@@ -220,7 +228,7 @@ def crawling(potok):
 
 def main(threads=1):
     # Performing function
-    # Takes as many streams as input
+    # threads : int - takes as many streams as input
     logging.info('------START PROGRAM------')
     procs = []
     for i in range(1, threads+1):
@@ -233,8 +241,8 @@ def main(threads=1):
 
 if __name__ == '__main__':
     # The main body of the program.
-    # Accepts 3 parameters as input: a - ip address of the device on which the database is located, by default 127.0.0.1
-    # v - the logging level, t - the number of threads.
+    # Accepts 3 parameters as input: a : string - ip address of the device on which the database is located, by default 127.0.0.1
+    # v : count of 'v' - the logging level, t : int - the number of threads.
     parser = argparse.ArgumentParser()
     parser.add_argument('-a','--address', type=str, help='default ip address is 127.0.0.1',
                         default='127.0.0.1', metavar='')
@@ -254,4 +262,3 @@ if __name__ == '__main__':
     logging.info('Start program')
     logging.debug('Parcing arguments: %s %s %s', args.address, args.verbose, args.threads)
     main(args.threads)
-
