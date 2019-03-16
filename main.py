@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
-import re
 import argparse
-import psycopg2
 import logging
+import re
 import urllib.request
-from time import sleep
-from urllib.parse import urlparse
-from itertools import groupby
-from urllib.error import HTTPError, URLError
-from multiprocessing.dummy import Pool as ThreadPool
 from datetime import datetime
+from itertools import groupby
+from multiprocessing.dummy import Pool as ThreadPool
+from time import sleep
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+
+import psycopg2
 
 from config import DB
 
@@ -26,14 +27,11 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # 2. Release on github and bitbucket
 # 3. Refactoring
 # 4. Syslog server
-# 5. Rework cookie parser
-# 6. Fix id numbers
-# 7. Check for internal links like "support.html"
-# 8. if external links too much then part of them add to DB
-# 9. if // then this is external link
-# 10. Docker container
-# 11. Export urls in few formats (xml, raw, cvs, sql, ...)
-# 12. Fix RE on external links
+# 5. Check for internal links like "support.html"
+# 6. if // then this is external link
+# 7. Export urls in few formats (xml, cvs, sql, html)
+# 8. Fix RE on external links
+# 9. Add program for create linked graph
 
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
@@ -52,7 +50,7 @@ def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, d
         bankIncludeUrl = unicList(bankIncludeUrl)
         tempLinks = []
         for link in re.findall(rr, html.decode('utf-8')):
-            if link is not None:
+            if link:
                 if tempurl not in link:
                     linkFull = origUrl+link
                 else:
@@ -164,8 +162,8 @@ def crawling(potok):
                 html, cookie = requestSite(url, procNumb)   # Request for found link
                 if cookie:
                     c.execute('INSERT INTO cookies(url, cookie) VALUES (%s, %s)', (url, cookie))
-                    logging.info('Process #%s = Added cookie', procNumb)
-                    logging.debug('Process #%s = Added cookie %s', procNumb,cookie)
+                    logging.info('Process #%s = Saved cookie from %s', procNumb, url)
+                    logging.debug('Process #%s = Saved cookie %s from %s', procNumb, cookie, url)
 
             conn.commit()
             conn.close()
