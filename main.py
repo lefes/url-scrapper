@@ -22,21 +22,18 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 
 
 # TODO:
-# 1. Add comments
-# 2. Refactoring logging
-# 3  Personal log file for every proccess
-# 4. README
-# 5. Release on github and bitbucket
-# 6. Refactoring
-# 7. Syslog server
-# 8. Rework cookie parser
-# 9. Fix id numbers
-# 10. Check for internal links like "support.html"
-# 11. if external links too much then part of them add to DB
-# 12. if // then this is external link
-# 13. Docker container
-# 14. Export urls in few formats (xml, raw, cvs, sql, ...)
-# 15. Fix RE on external links
+# 1. README
+# 2. Release on github and bitbucket
+# 3. Refactoring
+# 4. Syslog server
+# 5. Rework cookie parser
+# 6. Fix id numbers
+# 7. Check for internal links like "support.html"
+# 8. if external links too much then part of them add to DB
+# 9. if // then this is external link
+# 10. Docker container
+# 11. Export urls in few formats (xml, raw, cvs, sql, ...)
+# 12. Fix RE on external links
 
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
@@ -231,7 +228,7 @@ def crawling(potok):
 def main(threads=1):
     # Performing function
     # threads : int - takes as many streams as input
-    ##### logging.info('------START PROGRAM------')
+    logging.info('------START PROGRAM------')
     procs = []
     for i in range(1, threads+1):
         procs.append(i)
