@@ -163,11 +163,13 @@ def crawling(potok):
 
             if db_urls:
                 url = db_urls[0][0]
-                c.execute('UPDATE urls SET checked=1 WHERE url=%s', (url, ))
+                c.execute('UPDATE urls SET checked=1 WHERE url=%s', (url,))
                 html, cookie = requestSite(url, procNumb)   # Request for found link
                 if cookie:
                     c.execute('INSERT INTO cookies(url, cookie) VALUES (%s, %s)', (url, cookie))
-            
+                    logging.info('Process #%s = Added cookie', procNumb)
+                    logging.debug('Process #%s = Added cookie %s', procNumb,cookie)
+
             conn.commit()
             conn.close()
 
@@ -200,7 +202,7 @@ def crawling(potok):
                 if externalLinks:
                     extNums = 0
                     for cl_ex in externalLinks:
-                        c_ext.execute('SELECT url FROM urls where url=%s', (cl_ex, ))
+                        c_ext.execute('SELECT url FROM urls where url=%s', (cl_ex,))
                         in_db = c_ext.fetchone()
                         if not in_db:
                             try:
@@ -229,7 +231,7 @@ def crawling(potok):
 def main(threads=1):
     # Performing function
     # threads : int - takes as many streams as input
-    logging.info('------START PROGRAM------')
+    ##### logging.info('------START PROGRAM------')
     procs = []
     for i in range(1, threads+1):
         procs.append(i)
@@ -257,8 +259,10 @@ if __name__ == '__main__':
     else:
         level_debug = 10
 
+
     FORMAT = '%(asctime)-15s %(message)s'
     logging.basicConfig(filename='work.log', level=level_debug, format=FORMAT)
     logging.info('Start program')
     logging.debug('Parcing arguments: %s %s %s', args.address, args.verbose, args.threads)
+
     main(args.threads)
