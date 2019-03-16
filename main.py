@@ -28,12 +28,11 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # 3. Refactoring
 # 4. Syslog server
 # 5. Check for internal links like "support.html"
-# 6. if // then this is external link
-# 7. Export urls in few formats (xml, cvs, sql, html)
-# 8. Fix RE on external links
-# 9. Add program for create linked graph
-# 10. Fix problem with import defs programm with logging
-# 11. Add example of usage program
+# 6. Export urls in few formats (xml, cvs, sql, html)
+# 7. Fix RE on external links
+# 8. Add program for create linked graph
+# 9. Fix problem with import defs programm with logging
+# 10. Add example of usage program
 
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
@@ -100,17 +99,22 @@ def getExternalLinks(url, procNumb):
 
     try:
         html, _ = requestSite(url, procNumb)
+        urlHost = urlparse(url)
         logging.debug('Process #%s = START parcing external link: %s', procNumb, url)
-        rr= re.compile('href="((http|www)[^"]+)"')
+        rr= re.compile('href="((http|www|\/\/)[^"]+)"')
         externalLinks = []
         for link in re.findall(rr, html.decode('utf-8')):
-            if link[0] is not None:
-                if url not in link[0]:
-                    if link[0] not in externalLinks:
-                        if '.tumblr' not in link[0]:
-                            p = urlparse(link[0])
-                            if p.netloc and '.' in p.netloc:
-                                externalLinks.append(p.scheme + '://' + p.netloc)
+            if link[0]:
+                if urlHost.netloc not in link[0]:
+                    p = urlparse(link[0])
+                    if p.netloc and '.' in p.netloc:
+                        if p.scheme:
+                            extLink = p.scheme + '://' + p.netloc
+                        else:
+                            extLink = urlHost.scheme + '://' + p.netloc
+                        if extLink not in externalLinks:
+                            externalLinks.append(extLink)
+                    
         logging.debug('Process #%s = STOP parcing external link: %s', procNumb, url)
         return externalLinks
     except:
