@@ -29,10 +29,9 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # 4. Syslog server
 # 5. Check for internal links like "support.html"
 # 6. Export urls in few formats (xml, cvs, sql, html)
-# 7. Fix RE on external links
-# 8. Add program for create linked graph
-# 9. Fix problem with import defs programm with logging
-# 10. Add example of usage program
+# 7. Add program for create linked graph
+# 8. Fix problem with import defs programm with logging
+
 
 
 def getInternalLinks(includeUrl, origUrl, procNumb, bankIncludeUrl=[], deep=0, deepRecurs=0):
@@ -196,7 +195,7 @@ def crawling(potok):
             externalLinks = []
             logging.debug('Process #%s = requsting url: %s', procNumb, url)
 
-            internalLinks = getInternalLinks(url, url, procNumb)
+            internalLinks = getInternalLinks(url, url, procNumb,deep=args.deep)
 
             if not internalLinks:
                 logging.debug('Process #%s = internalLinks is empty in URL: %s', procNumb, url)
@@ -269,19 +268,23 @@ if __name__ == '__main__':
         # v - count of 'v' - the logging level
         # t - int - the number of threads.
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-a','--address', type=str, help='default ip address is 127.0.0.1',
+    parser = argparse.ArgumentParser(description='Example: python main.py -a 127.0.0.1 -v -t 5 -d 0')
+    parser.add_argument('-a', '--address', type=str, help='default ip address is 127.0.0.1',
                         default='127.0.0.1', metavar='')
-    parser.add_argument('-v','--verbose', help='Level of logging (INFO,DEBUG)',
-                        action='count', default=1)
-    parser.add_argument('-t','--threads', type=int, help='Number of threads',
+    parser.add_argument('-v', '--verbose', help='Level of logging (INFO,DEBUG)',
+                        action='count', default=0)
+    parser.add_argument('-t', '--threads', type=int, help='Number of threads',
                         default=1, metavar='')
+    parser.add_argument('-d', '--deep', type=int, help='Deep of recursion',
+                        default=0,metavar='')
     args=parser.parse_args()
 
     if args.verbose == 1:
         level_debug = 20
-    else:
+    elif args.verbose == 2:
         level_debug = 10
+    else:
+        level_debug = 100
 
 
     FORMAT = '%(asctime)-15s %(message)s'
