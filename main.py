@@ -26,7 +26,7 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 # 1. README
 # 2. Release on github
 # 3. Check for internal links like "support.html"
-# 4. Export urls in few formats (xml, cvs, sql, html)
+# 4. Export urls in few formats (xml, csv, sql, html)
 # 5. Add program for create linked graph
 
 
