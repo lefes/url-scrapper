@@ -24,13 +24,10 @@ EXCLUDE = ['.jpg', '.png', '.pdf', '.psd', '.gif', '.avi', '.mpeg', '.mov',
 
 # TODO:
 # 1. README
-# 2. Release on github and bitbucket
-# 3. Refactoring
-# 4. Syslog server
-# 5. Check for internal links like "support.html"
-# 6. Export urls in few formats (xml, cvs, sql, html)
-# 7. Add program for create linked graph
-# 8. Fix problem with import defs programm with logging
+# 2. Release on github
+# 3. Check for internal links like "support.html"
+# 4. Export urls in few formats (xml, cvs, sql, html)
+# 5. Add program for create linked graph
 
 
 
