@@ -4,3 +4,4 @@ config.py
 *.pyc
 work.log
 *.log
+import.py
