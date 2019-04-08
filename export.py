@@ -134,7 +134,7 @@ COPY public.urls (id, url, url_source, datetime, checked) FROM stdin;''')
             print(res)
             try:
                 s=res[0]+'                    '+res[1]
-                s='%r'%s[1:-1]
+                s=('%r'%s)[1:-1]
                 s+='\n'
                 f.write(s)
             except:
